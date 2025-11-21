@@ -13,6 +13,7 @@ cell *init_targeted_square(unsigned int x, unsigned int y)
     target->top_right   = NULL;
     target->bot_left    = NULL;
     target->bot_right   = NULL;
+    target->chain       = NULL;
     target->next_value = DEAD;
     target->value = DEAD;
     target->x = x;
