@@ -2,7 +2,7 @@
 
 
 
-cell *init_targeted_square(unsigned int x, unsigned int y)
+cell *init_targeted_square(unsigned int y, unsigned int x)
 {
     cell *target = malloc(sizeof(cell));
     target->top         = NULL;
@@ -23,46 +23,46 @@ cell *init_targeted_square(unsigned int x, unsigned int y)
     return target;
 }
 
-grid *create_grid(void)
+game *create_game(void)
 {
-    grid *game = init_grid_default();
+    game *game = init_game_default();
     randomize_grid(game);
 
     return game;
 }
 
-grid *init_grid_default(void)
+game *init_game_default(void)
 {
-    grid *target = malloc(sizeof(grid));
+    game *target = malloc(sizeof(game));
     
     target->head = NULL;
-    target->x = 10;
-    target->y = 10;
+    target->y = 3;
+    target->x = 7;
     char top_condition = 0;
     char bot_condition = 0;
     char left_condition = 0;
     char right_condition = 0;    
 
-    target->grille = malloc(sizeof(cell **) * target->x);
-    for (unsigned int i = 0; i < target->x ; i++)
+    target->grille = malloc(sizeof(cell **) * target->y);
+    for (unsigned int i = 0; i < target->y ; i++)
     {
-        target->grille[i] = malloc(target->y * sizeof(cell *));
-        for (unsigned int j = 0 ; j < target->y ; j++)
+        target->grille[i] = malloc(target->x * sizeof(cell *));
+        for (unsigned int j = 0 ; j < target->x ; j++)
             target->grille[i][j] = init_targeted_square(i, j);
     }
         
 
     // on peut pas intégrer le malloc dans la boucle d'après pck sinon on ne peut pas assigner les i+1 etc
 
-    for (unsigned int i = 0; i < target->x ; i++)
+    for (unsigned int i = 0; i < target->y ; i++)
     { 
-        for (unsigned int j = 0 ; j < target->y ; j++)
+        for (unsigned int j = 0 ; j < target->x ; j++)
         {
             
             top_condition = i > 0;
-            bot_condition = i < target->x - 1;
+            bot_condition = i < target->y - 1;
             left_condition = j > 0;
-            right_condition = j < target->y - 1;
+            right_condition = j < target->x - 1;
 
             // -------------------------------------- assigns neighbours if they exist --------------------------------------
             if (top_condition)                          target->grille[i][j]->top           = target->grille[i-1]   [j];
@@ -77,10 +77,14 @@ grid *init_grid_default(void)
             // -------------------------------------- assigns neighbours if they exist --------------------------------------
         }
     }
+    target->top_left = target->grille[0][0];
+    target->bot_right = target->grille[target->y - 1][target->x - 1];
+
     return target;
 }
 
-void square_free(cell *target)
+
+void cell_free(cell *target)
 {
     if (target->chain)
         free(target->chain);
@@ -88,40 +92,55 @@ void square_free(cell *target)
 }
 
 
-void grid_free(grid *target)
+void game_free(game *target)
 {
     if (!target)    return;
-    for (unsigned int i = 0 ; i < target->x ; i++)
+    for (unsigned int i = 0 ; i < target->y ; i++)
     {
-        for (unsigned int j = 0 ; j < target->y ; j++)
-            square_free(target->grille[i][j]);
+        for (unsigned int j = 0 ; j < target->x ; j++)
+            cell_free(target->grille[i][j]);
         free(target->grille[i]);
     }
     free(target->grille);
     free(target);
 }
 
-
-void grid_print(grid *target, WINDOW *win)
+void game_print_line(WINDOW *win, cell *very_left, unsigned int x)
 {
-    for (unsigned int x = 0 ; x < target->x ; x++)
+    cell *current = very_left;
+    unsigned int y = 0;
+    while (current)
     {
-        for (unsigned int y = 0 ; y < target->y ; y++)
-            /*if (target->grille[x][y]->chain)
-                mvwprintw(win, x, y*2, "%ls", L"🟥");
-            else*/
-                mvwprintw(win, x, y*2, "%ls%ls", 
-                                    BLACK + (1 *  (target->grille[x][y]->value)),      // affiche BLACK si target->grille[x][y] == 0
-                                    WHITE + (1 * !(target->grille[x][y]->value)));     // affiche WHITE si target->grille[x][y] == 1
-        
-            
+        mvwprintw(win, x, y*2, "%ls%ls", 
+                                    BLACK + (1 *  (current->value)),      // affiche BLACK si target->grille[x][y] == 0
+                                    WHITE + (1 * !(current->value)));     // affiche WHITE si target->grille[x][y] == 1
+
+        y++;
+        current = current->right;
     }
+}
+
+
+void game_print(game *target, WINDOW *win)
+{
+    cell *current = target->top_left;
+    cell *ref_height = current;
+    unsigned int x = 0;
+    while (current->y < target->bot_right->y)
+    {
+        game_print_line(win, ref_height, x);
+    
+        current = ref_height->bot;
+        ref_height = current;
+        x++;
+    }
+    game_print_line(win, current, x);
     refresh();
     return;
 }
 
 
-void grid_edit_square(cell *target, char square, grid *game)
+void game_edit_square(cell *target, char square, game *game)
 {
     target->value = square;
     if (square)
@@ -169,7 +188,7 @@ char cell_get_nb_alive_neighbours(cell *target)
 }
 
 
-void grid_next(grid *game)
+void game_next(game *game)
 {
     cell **process_queue = NULL;
     unsigned int last_element = 0;
@@ -178,9 +197,9 @@ void grid_next(grid *game)
     else
     {
         process_queue = calloc(game->x * game->y, sizeof(cell *));
-        for (unsigned int i = 0; i < game->x; i++)
+        for (unsigned int i = 0; i < game->y; i++)
         {
-            for (unsigned int j = 0; j < game->y; j++)
+            for (unsigned int j = 0; j < game->x; j++)
                 process_queue[last_element++] = game->grille[i][j];
         }
     }
@@ -192,13 +211,12 @@ void grid_next(grid *game)
         process_queue[i]->will_be_processed = 0;
     }
     for (unsigned int i=0; i < last_element; i++)
-        grid_edit_square(process_queue[i], process_queue[i]->next_value, game);
+        game_edit_square(process_queue[i], process_queue[i]->next_value, game);
     
     free(process_queue);
     process_queue = NULL;
     last_element = 0;
 }
-
 
 
 cell **manage_process_queue(chain_cells *queue_start, unsigned int *nb_items)

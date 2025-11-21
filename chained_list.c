@@ -2,7 +2,7 @@
 #include "chained_list.h"
 
 
-void replace_head(grid *game, chain_cells *target)
+void replace_head(game *game, chain_cells *target)
 {
     if (game->head)
     {

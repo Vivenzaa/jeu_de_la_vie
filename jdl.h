@@ -31,27 +31,37 @@ typedef struct cell_s
 } cell;
 
 
-typedef struct grid_s
+typedef struct game_s
 {
     cell ***grille;
     unsigned int x;
     unsigned int y;
+    cell *top_left;
+    cell *bot_right;
     chain_cells *head;
-} grid;
+} game;
+
+typedef enum direction_s
+{
+    TOP,
+    BOT,
+    LEFT,
+    RIGHT
+} direction;
 
 #include "chained_list.h"
 
 
-grid *create_grid(void);
-cell *init_targeted_square(unsigned int x, unsigned int y);
-grid *init_grid_default(void);
-void square_free(cell *target);
-void grid_free(grid *target);
-void grid_print(grid *target, WINDOW *win);
-void grid_edit_square(cell *target, char square, grid *game);
+game *create_game(void);
+cell *init_targeted_square(unsigned int y, unsigned int x);
+game *init_game_default(void);
+void cell_free(cell *target);
+void game_free(game *target);
+void game_print(game *target, WINDOW *win);
+void game_edit_square(cell *target, char square, game *game);
 char cell_get_nb_alive_neighbours(cell *target);
-void grid_next(grid *head);
-void randomize_grid(grid *target);
+void game_next(game *head);
+void randomize_grid(game *target);
 cell **manage_process_queue(chain_cells *queue_start, unsigned int *nb_items);
 
 

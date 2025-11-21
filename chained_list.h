@@ -15,6 +15,6 @@ typedef struct chain_cells_s
 
 void create_chain(cell *target);
 chain_cells *init_empty_chain();
-void replace_head(grid *game, chain_cells *target);
+void replace_head(game *game, chain_cells *target);
 
 #endif
