@@ -23,33 +23,30 @@ int main (void)
     signal(SIGSEGV, last_second_clean);
     setlocale(LC_ALL, "");
     int i = 0;
-    FILE *f = fopen("log.txt", "w");
-    grid *test = create_grid();        
+    game *test = create_game();        
 
     WINDOW *win = initscr ();
     curs_set (0);
     
     while(i < 10000)
     {
-        //grid_print(test, win);
-        grid_next(test);
-        //sleep(1);
-        fprintf(f, "%d\n", i);
+        game_print(test, win);
+        game_next(test);
+        sleep(1);
         i++;
     }
-    fclose(f);
-    grid_free(test);
+    game_free(test);
     getch();
     curs_set(1);
-    delwin(win);
     endwin();
     return 0;
 }
 
 
 /*
-   XXXXX
-   XOOOX
-   XXXXX
+   TODO :
+    - grille completement en liste chainée
+    - extension de grille
+    - implémentation de grille creuse
 
 */

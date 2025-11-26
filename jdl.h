@@ -17,25 +17,18 @@ typedef struct cell_s
     char value;
     char next_value;
     char will_be_processed;
-    unsigned int x;
-    unsigned int y;
+    signed long x;
+    signed long y;
     struct cell_s *top;
     struct cell_s *bot;
     struct cell_s *left;
     struct cell_s *right;
-    struct cell_s *top_left;
-    struct cell_s *top_right;
-    struct cell_s *bot_left;
-    struct cell_s *bot_right;
     chain_cells *chain;
 } cell;
 
 
 typedef struct game_s
 {
-    cell ***grille;
-    unsigned int x;
-    unsigned int y;
     cell *top_left;
     cell *bot_right;
     chain_cells *head;
@@ -53,7 +46,8 @@ typedef enum direction_s
 
 
 game *create_game(void);
-cell *init_targeted_square(unsigned int y, unsigned int x);
+cell *init_targeted_cell(signed long y, signed long x);
+void create_line(cell *left, signed long from_x, signed long until_x);
 game *init_game_default(void);
 void cell_free(cell *target);
 void game_free(game *target);
@@ -63,7 +57,13 @@ char cell_get_nb_alive_neighbours(cell *target);
 void game_next(game *head);
 void randomize_grid(game *target);
 cell **manage_process_queue(chain_cells *queue_start, unsigned int *nb_items);
-
+cell *get_top_right_cell(game *target);
+void extend_grid(game *target, direction d);
+void init_cell_chunk_top(game *target);
+void merge_lines (cell *l1, cell *l2, direction end_is_to_the);
+bool cell_is_available(cell *target, direction additionnal);
+void merge_cols(cell *l1, cell *l2, direction from_the);
+void create_col(cell *start, signed long from_y, signed long until_y);
 
 
 #endif
